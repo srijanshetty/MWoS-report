@@ -74,52 +74,33 @@ Liverpool Computing Services Department for the development of this
 
 \chapter{OpenVPN}
 \section{Introduction}
+OpenVPN\footnote{http://openvpn.net} is a GNU General Public Licensed implementation of a
+Virtual Private Network \footnote{A Virtual Private Network allows two or more private
+networks to be securly connected over an insecure network like the internet.} written
+in C.
 
-\LaTeX \ is a document publishing system which can produce high quality
-output particulary when complicated formulae need to be reproduced in print.
-Because of this it is widely used by mathematicians. \LaTeX \ is essentially
-a collection of \TeX \ macros which is a typesetting language in its own right.
-\TeX \ is quite difficult to learn but provides much finer control over typsetting
-then \LaTeX. Most users will find that \LaTeX \ meets most of their
-needs and will therefore have little need of \TeX. \LaTeX \ is available on
-both the MWS and Sun UNIX services with the MWS
-version having the added advantage of including a graphical user interface called
-TeXShell.
+\section{Multifactor Authentication}
+\subsection{Introduction}
+Multifactor Authentication is a method to harded access control by presenting a user atleast
+two out of the following mentioned factors:
 
-There are no courses provided by CSD in \LaTeX \ however, information is available
-on line. The TeXShell/MikTeX guide can be found at:
-\\
-\\
-http://www.liv.ac.uk/CSD/acuk\_html/414.dir/414.doc
-\\
-\\
-and there is also an FAQ at:
-\\
-\\
-http://www.liv.ac.uk/csd/software/ps/faqtex.htm
-\\
-\\
-The Sun UNIX \LaTeX \ guide is at:
-\\
-\\
-http://www.liv.ac.uk/CSD/acuk\_html/452.dir/452.pdf
-\\
-\\
-If you are new to \LaTeX, then probably the best place to start is with
-Leslie Lamport's very readable guide, {\em ``LaTeX - A Document Preparation
-System''} \cite{latex} . If you need to delve into \TeX, then {\em ``The TeXbook''} \cite{texbook} by
-Donald E. Knuth is essential reading. Knuth, a leading light in
-computer science, designed the \TeX \ language in order to produce
-his seminal work {\em ``The Art of Computer Programming''} \cite{artbook} so this really
-is the definitive guide to the subject.
+\begin{enumerate}
+    \item \emph{Knowledge Factor}: The knowledge factor of authentication comprises of
+        authentication methods which tests the user for knowledge of a pre shared secret.
+        \emph{"things only the user knows"}. For example: passwords.
+    \item \emph{Possesion Factor}: The possesiion factor of authentication comprises of
+        authentication methods which tests the user for the possesion of a key.
+        \emph{"things only the user has"}. For example: Smart Cards, ATM Cards.
+    \item \emph{Inherence Factor}: The inherence factor of authentication comprises of
+        authentication methods which tests the user for possesion of \emph{"things only
+        the user is"}. For example: Biometrics.
+\end{enumerate}
 
-To save users from having to type in a many low level
-\TeX \ commands, style files can be used to define additional
-macros which can be used in addition to standard ones from
-\LaTeX. Many journal publishers provide style files to ensure
-that all submissions conform to a standard `house' format. It may
-be worth checking on the Internet to see if style files are available
-to suit your particular discipline.
+While conventional methods of authentication only take into account a knowledge factor,
+multi authentication includes atleast two different factors from the aforementioned list
+and might even have multiple authentication methods for a particular factor.
+
+\subsection{Implementation}
 
 \section{Running \LaTeX}
 This section descrines how to take the thesis template file
