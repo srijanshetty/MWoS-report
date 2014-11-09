@@ -76,32 +76,37 @@ Liverpool Computing Services Department for the development of this
 
 \chapter{OpenVPN}
 \section{Introduction}
-OpenVPN\footnote{http://openvpn.net} is a GNU General Public Licensed implementation of a
-Virtual Private Network \footnote{A Virtual Private Network allows two or more private
-networks to be securely connected over an insecure network like the internet.} written
-in C.
+A Virtual Private network allows two devices to securely communicate with each other
+over a possibly insecure public network. This concept when extended to networks
+allows for secure communications between different private networks over an
+insecure network (most often the internet), thereby creating a virtual super-network.
 
-\section{VPN}
+OpenVPN \footnote{http://openvpn.net} is a GNU General Public
+Licensed \footnote{http://www.gnu.org/copyleft/gpl.html} implementation of a
+Virtual Private Network written in C maintained by the OpenVPN project.
 
-\section{OpenVPN Protocol}
-Refer \ref{OpenVPN:protocol} on page \pageref{OpenVPN:protocol} for the protocol details.
+\section{Architecture}
+\textbf{TODO}
+
+\section{Protocol}
+OpenVPN uses a custom protocol for communications which is attached in appendix
+\ref{OpenVPN:protocol} on page \pageref{OpenVPN:protocol} for perusal.
 
 \chapter{Multifactor Authentication}
 \section{Introduction}
 Multifactor Authentication, henceforth used interchangeably with MFA, hardens access control
-by challenging a user on at least two out of the following three mentioned factors of
-authentication.
+by challenging a user on at least two out of the following three factors of authentication.
 
 \begin{enumerate}
     \item \emph{Knowledge Factor}: The knowledge factor of authentication comprises of
-        authentication methods which tests the user for knowledge of a pre shared secret.
-        \emph{"things only the user knows"}. For example: passwords.
+        authentication methods which tests the user for the knowledge of a pre-shared secret.
+        \emph{"things only the user knows"}. For example: ATM Pins, website passwords.
     \item \emph{Possession Factor}: The possession factor of authentication comprises of
-        authentication methods which tests the user for the possession of a key.
-        \emph{"things only the user has"}. For example: Smart Cards, ATM Cards.
+        authentication methods which tests the user for the possession of an entity.
+        \emph{"things only the user has"}. For example: Smart cards, ATM Cards.
     \item \emph{Inherence Factor}: The inherence factor of authentication comprises of
         authentication methods which tests the user for possession of \emph{"things only
-        the user is"}. For example: Biometrics.
+        the user is"}. For example: Retinal scans, Fingerprint scans.
 \end{enumerate}
 
 While conventional methods of authentication only take into account a knowledge factor,
@@ -123,8 +128,6 @@ The current architecture of OpenVPN supports two key methods:
         Refer to Appendix \ref{OpenVPN:protocol} on page \pageref{OpenVPN:protocol} for details.
 \end{enumerate}
 
-\subsection{Augmentation}
-
 \subsection{MFA types}
 The current implementation of MFA in OpenVPN supports three different MFA types, which differ
 in the credentials required by the user to complete the authentication.
@@ -132,20 +135,38 @@ in the credentials required by the user to complete the authentication.
 \begin{enumerate}
     \item \emph{OTP}: A one time password consist of only a password which can be conveniently
         delivered to the user using SMS, an OTP-stick, or an application like Google Authenticator.
-    \item \emph{Userpass}: The conventional username-password scheme requires the user to provide
+    \item \emph{USER-PASS}: The conventional username-password scheme requires the user to provide
         both a username and password.
-    \item \emph{Push}: No input is required by the user in a push message except the confirmation
+    \item \emph{PUSH}: No input is required by the user in a push message except the confirmation
         of a push from a pre selected device.
 \end{enumerate}
 
+\subsection{Augmentation}
+The packet structure of key method 2 - Appendix \ref{OpenVPN:protocol}, \pageref{OpenVPN:protocol} -
+was augmented with the addition of MFA-username and MFA-password in the options field of the packet
+just after username and password for AUTH-USERPASS.
+
+Three new OpenVPN plugin types have been introduced to support MFA.
+
+\begin{itemize}
+     \item OPENVPN\_PLUGIN\_AUTH\_MFA\_PUSH\_VERIFY
+     \item OPENVPN\_PLUGIN\_AUTH\_MFA\_OTP\_VERIFY
+     \item OPENVPN\_PLUGIN\_AUTH\_MFA\_USER\_PASS\_VERIFY
+\end{itemize}
+
+In case of OTP authentication, the username field is set to the Common Name of the user and the OTP
+is sent as the password. The Common Name is sent as the username in PUSH with an empty string as
+password. The username and password fields are populated with the user supplied values in case of
+USER-PASS.
+
 The actual implementation of the each of these kinds of MFA is left to the plugin/script writer.
 OpenVPN simply calls the registered plugin/script when asked to perform multifactor authentication
-and waits for a success/failure response code. On receiving a success code, OpenVPN continues on
-with the rest of the protocol; and on receiving a failure code, OpenVPN immediately terminates the
-connection by sending the client a \emph{SIGTERM} signal.
+with a specified type and waits for a success/failure response. On receiving a success, OpenVPN
+continues on with the rest of the protocol; and on receiving a failure, OpenVPN immediately
+terminates the client connection by sending the client a \emph{SIGTERM} signal. This allows for
+multiple plugins/scripts to be created for a particular type of MFA.
 
 \section{Configuration}
-
 \subsection{Server}
 To enable multifactor authentication in the server using a script, the following line needs to be
 included in the configuration file of the server:
@@ -174,6 +195,7 @@ configuration file of the client:
 \end{verbatim}
 
 \section{Backwards Compatibility}
+\textbf{TODO}
 
 % \include{chapter2}
 
