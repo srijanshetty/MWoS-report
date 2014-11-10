@@ -1,111 +1,17 @@
-commit bc05baaf46fb4d07f213657739e267856bbf5a5f
-Author: Harshvardhan Sharma <harsh1618@outlook.com>
-Date:   Wed Oct 29 02:52:22 2014 +0530
-
-    clear MFA credentials in ssl_purge_auth
-
-commit 735996c9b1a5b23172d5d330173115ec33d6206f
-Author: Harshvardhan Sharma <harsh1618@outlook.com>
-Date:   Sun Oct 19 03:40:48 2014 +0530
-
-    misc fixes
-
-    1. Fixed indentation.
-    2. Size of username array is USER_PASS_LEN.
-    3. Clear mfa struct even when mfa is not enabled on the server.
-
-commit 95ff0b5bdc3f798d41e251eac7d8fddbc9ab371e
-Author: Harshvardhan Sharma <harsh1618@outlook.com>
-Date:   Tue Oct 14 22:15:05 2014 +0530
-
-    Backward compatibility for MFA authentication
-
-commit e0bfc777e8d79a2f2d1f0ebdb7d380c7cfe68324
-Author: Harshvardhan Sharma <harsh1618@outlook.com>
-Date:   Wed Oct 15 00:28:46 2014 +0530
-
-    s/MAX_MFA_METHODS/MFA_TYPE_N, send mfa type as int
-
-commit 48315d88c30cf7028f26aba5b182cb2a46c40df0
-Author: Harshvardhan Sharma <harsh1618@outlook.com>
-Date:   Thu Oct 9 19:56:34 2014 +0530
-
-    minor cleanup
-
-commit 94946567082afe6bb0f48de346c335eb5f3cb4af
-Author: Shivanshu Agrawal <shivanshuag@gmail.com>
-Date:   Thu Oct 9 19:30:44 2014 +0530
-
-    refactor mfa options
-
-commit 53d7aecfc363e30382166abd4f522d6e69124fa5
-Author: Shivanshu Agrawal <shivanshuag@gmail.com>
-Date:   Wed Oct 8 20:45:07 2014 +0530
-
-    passing credentials to script via file
-
-commit 6f298d5a6a69deeee3fe112b9d373aa84669f569
-Author: Shivanshu Agrawal <shivanshuag@gmail.com>
-Date:   Wed Oct 1 21:22:14 2014 +0530
-
-    auth by script
-
-commit 397b7f408c0d21f4e1bbb9bc7449f80f6515e4b3
-Author: Harshvardhan Sharma <harsh1618@outlook.com>
-Date:   Wed Oct 1 19:14:01 2014 +0530
-
-    refactored mfa_methods_list
-
-commit 504b0e9b8c829704bdc8a1e34188a2424fdd7c04
-Author: Srijan R Shetty <srijan.shetty@gmail.com>
-Date:   Sat Sep 27 19:04:50 2014 +0530
-
-    Removed MFA name parameter
-
-commit 83c0f4540901f30b5b5cb5b34ee11ea49a3f8a02
-Author: Shivanshu Agrawal <shivanshuag@gmail.com>
-Date:   Thu Sep 25 20:50:12 2014 +0530
-
-    restrict the maximum number of mfa methods to 8
-
-commit 1baab9b3bf8acaadc18814b10489e8ef4f218def
-Author: Shivanshu Agrawal <shivanshuag@gmail.com>
-Date:   Wed Sep 24 21:00:31 2014 +0530
-
-    verified the MFA credentials via plugin
-
-commit 985d7d157d6fca1e1887cf8e1078740f6e60ac03
-Author: Harshvardhan Sharma <harsh1618@outlook.com>
-Date:   Tue Sep 9 19:20:29 2014 +0530
-
-    read and verify MFA options
-
-commit 769c8412066b4f1c380b09b66b19963fc0c1313c
-Author: Harshvardhan Sharma <harsh1618@outlook.com>
-Date:   Sun Sep 7 20:48:05 2014 +0530
-
-    write MFA options in key method 2 packet
-
-commit f10bd46197718ebcbe27ba102f054d3d0b0ab80d
-Author: Shivanshu Agrawal <shivanshuag@gmail.com>
-Date:   Fri Sep 5 21:27:50 2014 +0530
-
-    check mfa type while reading config file
-
-commit e6898758372a78f8168f96fcd51c58a582007979
-Author: Harshvardhan Sharma <harsh1618@outlook.com>
-Date:   Fri Sep 5 21:24:13 2014 +0530
-
-    Get MFA credentials from user
-
-commit 01dcf5984fed5a8f67ab062152474928bde76970
-Author: Harshvardhan Sharma <harsh1618@outlook.com>
-Date:   Mon Sep 1 01:15:05 2014 +0530
-
-    read MFA options from config file
-
-commit 7da9d40243e0743e2d050ceb6ae34e467dd58973
-Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Date:   Thu Oct 9 23:40:49 2014 +0200
-
--------------------- Older Commits ------------------------
+(Wed Oct 29) bc05baa clear MFA credentials in ssl_purge_auth
+(Sun Oct 19) 735996c misc fixes
+(Tue Oct 14) 95ff0b5 Backward compatibility for MFA authentication
+(Wed Oct 15) e0bfc77 s/MAX_MFA_METHODS/MFA_TYPE_N, send mfa type as int
+(Thu Oct 9)  48315d8 minor cleanup
+(Thu Oct 9)  9494656 refactor mfa options
+(Wed Oct 8)  53d7aec passing credentials to script via file
+(Wed Oct 1)  6f298d5 auth by script
+(Wed Oct 1)  397b7f4 refactored mfa_methods_list
+(Sat Sep 27) 504b0e9 Removed MFA name parameter
+(Thu Sep 25) 83c0f45 restrict the maximum number of mfa methods to 8
+(Wed Sep 24) 1baab9b verified the MFA credentials via plugin
+(Tue Sep 9)  985d7d1 read and verify MFA options
+(Sun Sep 7)  769c841 write MFA options in key method 2 packet
+(Fri Sep 5)  f10bd46 check mfa type while reading config file
+(Fri Sep 5)  e689875 Get MFA credentials from user
+(Mon Sep 1)  01dcf59 read MFA options from config file
