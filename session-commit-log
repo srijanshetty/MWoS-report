@@ -1,0 +1,185 @@
+commit 8995c2708501b54906c44a36ccbdd58c290795ac
+Author: Harshvardhan Sharma <harsh1618@outlook.com>
+Date:   Sat Nov 8 22:34:09 2014 +0530
+
+    hard coded key and cookie for CN client2
+
+commit db1c1f432ad96b0cd2138fa39e69b7a1c8bc01da
+Author: Harshvardhan Sharma <harsh1618@outlook.com>
+Date:   Sat Nov 8 22:21:16 2014 +0530
+
+    fixes in verify_cookie()
+
+commit cc429fc30360f452398a94e1d426200c99a00cd4
+Author: Harshvardhan Sharma <harsh1618@outlook.com>
+Date:   Sat Nov 8 00:08:39 2014 +0530
+
+    don't goto error if cookie verification succeeds
+
+commit efcf050fe67cfbc29413b6680dbd3b836b32c07a
+Author: Harshvardhan Sharma <harsh1618@outlook.com>
+Date:   Fri Nov 7 23:40:39 2014 +0530
+
+    client side fixes for session support
+
+commit ec584413e39b70b1c5bae79007caa7545a550397
+Author: Harshvardhan Sharma <harsh1618@outlook.com>
+Date:   Fri Nov 7 21:45:21 2014 +0530
+
+    fixes; token generation working
+
+commit 4734d94ff19ad2d471731d028af8e671e6cfb8e5
+Author: Harshvardhan Sharma <harsh1618@outlook.com>
+Date:   Fri Nov 7 19:42:10 2014 +0530
+
+    use hours for mfa session validity
+
+commit b46ed78b6151b70d4a9aacb9b8836fd854b3770a
+Author: Srijan R Shetty <srijan.shetty@gmail.com>
+Date:   Fri Nov 7 19:19:21 2014 +0530
+
+    Bug fix: auth_mfa_setup is now called properly everywhere
+
+commit b81684d4b2229da05cec688b91d313e40c792adc
+Author: Srijan R Shetty <srijan.shetty@gmail.com>
+Date:   Fri Nov 7 18:14:37 2014 +0530
+
+    Fix for gc_free and tv_within_minutes
+
+commit e60debd106f4525c2299dd7f71d606163873bf8d
+Author: Srijan R Shetty <srijan.shetty@gmail.com>
+Date:   Wed Nov 5 17:40:06 2014 +0530
+
+    Check for cookie expiration
+
+commit b32e6b7aca1c24ad1ad891a44114152685fee7fc
+Author: Srijan R Shetty <srijan.shetty@gmail.com>
+Date:   Wed Nov 5 17:39:49 2014 +0530
+
+    Fix for mfa_session_token_sent
+
+commit 2a668d815ad2190a6b24cee65b6bd5b67160ebe1
+Author: Harshvardhan Sharma <harsh1618@outlook.com>
+Date:   Wed Nov 5 16:52:50 2014 +0530
+
+    create new cookie in key_method_2_write
+
+commit 1a31f12eb83e19a8e8984a73d3603f308c739f37
+Author: Harshvardhan Sharma <harsh1618@outlook.com>
+Date:   Wed Nov 5 03:28:42 2014 +0530
+
+    fixes
+
+commit 3a36fb87fa9ef0d6cfce66f30291d454d7000354
+Author: Shivanshu Agrawal <shivanshuag@gmail.com>
+Date:   Wed Nov 5 02:20:11 2014 +0530
+
+    verify and generate functions for checking cookie
+
+commit 79d9279a16ca1747cc67d8b983e7795f06dfc93c
+Author: Harshvardhan Sharma <harsh1618@outlook.com>
+Date:   Tue Nov 4 23:22:23 2014 +0530
+
+    fixed a6cfa86
+
+commit a6cfa86a5852ad8b89dd9b0da7c4ad795a8e2751
+Author: Harshvardhan Sharma <harsh1618@outlook.com>
+Date:   Tue Nov 4 02:42:58 2014 +0530
+
+    WIP: changes in key_method_2_read on server side
+
+commit 02d242f3666608f0d1e8038655038d15bcafc440
+Author: Harshvardhan Sharma <harsh1618@outlook.com>
+Date:   Mon Nov 3 19:58:59 2014 +0530
+
+    WIP: read client cookie from key_method_2 packet
+
+commit c8c183773babd414da867cfa2f9ed0f855baba78
+Author: Srijan R Shetty <srijan.shetty@gmail.com>
+Date:   Mon Nov 3 19:42:31 2014 +0530
+
+    WIP: Cookie creation by server; TODO: create_cookie()
+
+commit 03bb698702acd9c924744efaaba3666ed9b07245
+Author: Srijan R Shetty <srijan.shetty@gmail.com>
+Date:   Mon Nov 3 19:40:16 2014 +0530
+
+    Fixes for previous compilation errors
+
+commit bbf6fad2bf18b92b2c7c014e952917d126e6c415
+Author: Srijan R Shetty <srijan.shetty@gmail.com>
+Date:   Sun Nov 2 22:09:16 2014 +0530
+
+    Changed the directive for mfa-session
+
+commit bade0e4e318be93be9a0626fc35173fb6491db60
+Author: Harshvardhan Sharma <harsh1618@outlook.com>
+Date:   Sun Nov 2 22:50:07 2014 +0530
+
+    WIP: Read client sent data
+
+commit d7a5e2f980b1ad0eb6b73d41adca416f31845a51
+Author: Srijan R Shetty <srijan.shetty@gmail.com>
+Date:   Sat Nov 1 19:28:02 2014 +0530
+
+    WIP: Functions for parsing timestamp
+
+commit e00da6ce52ecb5051143853d1290c91c224ba504
+Author: Srijan R Shetty <srijan.shetty@gmail.com>
+Date:   Sat Nov 1 19:11:09 2014 +0530
+
+    SQUASH: Fixes for previous commit
+
+commit e5ef0482ec28a2050b972f85db6a7687aac748ae
+Author: Shivanshu Agrawal <shivanshuag@gmail.com>
+Date:   Fri Oct 31 20:39:59 2014 +0530
+
+    generate IV when server starts up
+
+commit b10b95de39c18d8f193fa87a72f394d05c3ff66f
+Author: Shivanshu Agrawal <shivanshuag@gmail.com>
+Date:   Fri Oct 31 17:59:17 2014 +0530
+
+    fix compiler errors
+
+commit 50f81896bc241e37fe4d7cdd33b20a94b660ad6b
+Author: Harshvardhan Sharma <harsh1618@outlook.com>
+Date:   Thu Oct 30 21:12:03 2014 +0530
+
+    WIP, write session token in key method 2 packet
+
+commit 52511e638a342c10cda40b6760bb024f1aaa66d8
+Author: Shivanshu Agrawal <shivanshuag@gmail.com>
+Date:   Wed Oct 29 02:34:55 2014 +0530
+
+    WIP: session support
+
+commit d60887c01a1a8d00c307351c881085be332352e6
+Author: Srijan R Shetty <srijan.shetty@gmail.com>
+Date:   Wed Oct 29 00:05:35 2014 +0530
+
+    Module for mfa-session
+
+commit 064a8952a050de865ca9f934f7a96009ee02ff36
+Author: Srijan R Shetty <srijan.shetty@gmail.com>
+Date:   Tue Oct 28 23:14:47 2014 +0530
+
+    Read mfa-session options
+
+commit 735996c9b1a5b23172d5d330173115ec33d6206f
+Author: Harshvardhan Sharma <harsh1618@outlook.com>
+Date:   Sun Oct 19 03:40:48 2014 +0530
+
+    misc fixes
+    
+    1. Fixed indentation.
+    2. Size of username array is USER_PASS_LEN.
+    3. Clear mfa struct even when mfa is not enabled on the server.
+
+commit 95ff0b5bdc3f798d41e251eac7d8fddbc9ab371e
+Author: Harshvardhan Sharma <harsh1618@outlook.com>
+Date:   Tue Oct 14 22:15:05 2014 +0530
+
+    Backward compatibility for MFA authentication
+
+---------------- Older Commits -------------------------------------
