@@ -114,6 +114,16 @@ While conventional methods of authentication only take into account a knowledge 
 multi factor authentication includes at least two different factors from the aforementioned
 list and might even have multiple authentication methods for a particular factor.
 
+\section{Challenges}
+\begin{enumerate}
+    \item \textbf{Singled Threaded}: OpenVPN is single threaded process with an event loop which
+        allows it to handled concurrent connection requests. Every request fires a timer in OpenVPN
+        and if authentication does not succeed before the time quantum expires, the connection is
+        reset. For performance considerations, the timeout is very small and cannot be changed
+        without proper security considerations. In order to overcome this hurdle, we made use
+        of the plugin system of OpenVPN which allows for deferred authentication.
+\end{enumerate}
+
 \section{Implementation}
 \subsection{Current Architecture}
 The current architecture of OpenVPN supports two key methods:
@@ -159,12 +169,13 @@ is sent as the password. The Common Name is sent as the username in PUSH with an
 password. The username and password fields are populated with the user supplied values in case of
 USER-PASS.
 
-The actual implementation of the each of these kinds of MFA is left to the plugin/script writer.
-OpenVPN simply calls the registered plugin/script when asked to perform multifactor authentication
-with a specified type and waits for a success/failure response. On receiving a success, OpenVPN
+To allow for maximum extensibility of MFA, the actual implementation of each kind of of MFA
+is left to the plugin/script writer to prevent a vendor lock down. At the time of booting,
+the plugin/script mentioned in the configuration file is registered by OpenVPN's plugin
+system (only one plugin/script is allowed). During authentication, OpenVPN simply calls the
+registered plugin/script waits for a success/failure response. On receiving a success, OpenVPN
 continues on with the rest of the protocol; and on receiving a failure, OpenVPN immediately
-terminates the client connection by sending the client a \emph{SIGTERM} signal. This allows for
-multiple plugins/scripts to be created for a particular type of MFA.
+terminates the client connection by sending the client a \emph{SIGTERM} signal.
 
 \section{Configuration}
 \subsection{Server}
@@ -197,12 +208,27 @@ configuration file of the client:
 \section{Backwards Compatibility}
 \textbf{TODO}
 
+\section{Release Notes}
+The changes introduced by Multifactor Authentication despite being a complete overhaul of key method
+2 constitute only a minor patch according to the SemVer specification. \footnote{SemVer or Semantic
+Versioning is a system of naming software releases as MAJOR.MINOR.PATCH. A major change introduces
+breaking changes to the API specification. A minor change introduces non breaking features to software.
+A patch introduces non breaking fixes to the software.}
+
+\section{Commit Log}
+Refer to Appendix \ref{MFA:commit} on page \pageref{MFA:commit} for the commit log.
+
 % \include{chapter2}
 
 \appendix
 \chapter{OpenVPN Protocol}
 \label{OpenVPN:protocol}
 \lstinputlisting{protocol.c}
+
+\chapter{Multifactor Authentication}
+\label{MFA:commit}
+\section{Commit Log}
+\lstinputlisting{mfa-commit-log}
 
 \bibliographystyle{plain}
 \bibliography{thesis}
