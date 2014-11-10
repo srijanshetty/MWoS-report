@@ -4,15 +4,19 @@
 \usepackage{makeidx}
 \usepackage{nomencl}
 \usepackage{listings}
+\usepackage{multirow}
 
 \textheight=235mm
 \textwidth=145mm
 \topmargin=0mm
 \headheight=0mm
 \headsep=0mm
+\leftmargin=0mm
+
+% Spacing between rows
+\renewcommand{\arraystretch}{1.3}
 
 % These must be changed for double sided output !
-
 \oddsidemargin=15mm
 \evensidemargin=15mm
 
@@ -62,7 +66,7 @@ and backwards compatibility with older versions of OpenVPN.
 \chapter{Acknowledgement}
 The authors would like to thank Professor Dheeraj Sanghi for his continued guidance
 and support, Guillaume Destuynder of Mozilla who mentored the authors despite his
-hectic schedule and lastly Mozilla for giving the authors an oppurtunity to work on
+hectic schedule and lastly Mozilla for giving the authors an opportunity to work on
 a project like OpenVPN under its aegis.\\
 The authors wish to thank the University of
 Liverpool Computing Services Department for the development of this
@@ -90,7 +94,7 @@ Virtual Private Network written in C maintained by the OpenVPN project.
 
 \section{Protocol}
 OpenVPN uses a custom protocol for communications which is attached in appendix
-\ref{OpenVPN:protocol} on page \pageref{OpenVPN:protocol} for perusal.
+\ref{OpenVPN:Protocol} on page \pageref{OpenVPN:Protocol} for perusal.
 
 \chapter{Multifactor Authentication}
 \section{Introduction}
@@ -119,9 +123,21 @@ list and might even have multiple authentication methods for a particular factor
     \item \textbf{Singled Threaded}: OpenVPN is single threaded process with an event loop which
         allows it to handled concurrent connection requests. Every request fires a timer in OpenVPN
         and if authentication does not succeed before the time quantum expires, the connection is
-        reset. For performance considerations, the timeout is very small and cannot be changed
-        without proper security considerations. In order to overcome this hurdle, we made use
-        of the plugin system of OpenVPN which allows for deferred authentication.
+        reset. The time-out being tried and tested, was not up for modification.
+        Considering that current MFA schemes like OTP depend upon non-reliable mechanisms like
+        SMS during which the time-out might expire, we made use of the plugin system of OpenVPN
+        which allowed for deferred authentication. Hence overcoming the hurdle of time-out
+        during authentication.
+        (Refer to \ref{MFA:Mechanism} on page \pageref{MFA:Mechanism} for implementation details.)
+    \item \textbf{MFA Types}: Multiple solutions are available for multifactor authentication, hence
+        there was a need to provide an extensible mechanism to use the different available MFA
+        authentication schemes. (Refer to \ref{MFA:Types} on page \pageref{MFA:Types} for
+        implementation details.)
+    \item \textbf{Backwards Compatibility}: Considering that not all servers will want to support
+        MFA, all the changes were introduced in a non breaking fashion.
+        (Refer to \ref{MFA:BackwardCompat} on page \pageref{MFA:BackwardCompat} for implementation details.)
+    \item \textbf{Defensive Coding}: OpenVPN uses a defensive style of coding by using various
+        abstractions for garbage collection, memory allocation to overcome the shortcoming of C.
 \end{enumerate}
 
 \section{Implementation}
@@ -130,38 +146,37 @@ The current architecture of OpenVPN supports two key methods:
 
 \begin{enumerate}
     \item \emph{Key Method 1}, the legacy key method only checks for the validity of certificates.
-        Refer to Appendix \ref{OpenVPN:protocol} on page \pageref{OpenVPN:protocol} for details.
+        Refer to Appendix \ref{OpenVPN:Protocol} on page \pageref{OpenVPN:Protocol} for details.
     \item \emph{Key Method 2}, in addition to checking for the validity of certificates, allows for
         authentication of the user through username and password. The verification of username and
         password is delegated to either a script or a plugin which returns a binary result
         indicating a success or failure.
-        Refer to Appendix \ref{OpenVPN:protocol} on page \pageref{OpenVPN:protocol} for details.
-\end{enumerate}
-
-\subsection{MFA types}
-The current implementation of MFA in OpenVPN supports three different MFA types, which differ
-in the credentials required by the user to complete the authentication.
-
-\begin{enumerate}
-    \item \emph{OTP}: A one time password consist of only a password which can be conveniently
-        delivered to the user using SMS, an OTP-stick, or an application like Google Authenticator.
-    \item \emph{USER-PASS}: The conventional username-password scheme requires the user to provide
-        both a username and password.
-    \item \emph{PUSH}: No input is required by the user in a push message except the confirmation
-        of a push from a pre selected device.
+        Refer to Appendix \ref{OpenVPN:Protocol} on page \pageref{OpenVPN:Protocol} for details.
 \end{enumerate}
 
 \subsection{Augmentation}
-The packet structure of key method 2 - Appendix \ref{OpenVPN:protocol}, \pageref{OpenVPN:protocol} -
-was augmented with the addition of MFA-username and MFA-password in the options field of the packet
-just after username and password for AUTH-USERPASS.
+\subsubsection{Packet Structure}
+The packet structure of key method 2 - Appendix \ref{OpenVPN:Protocol}, \pageref{OpenVPN:protocol} -
+was augmented with the addition of a MFA-username and a MFA-password in the options of the packet
+following username and password fields for AUTH-USERPASS. To ensure backwards compatibility, all
+augmentations were made at the end of the packet.
 
+\subsubsection{MFA Plugin Types}
+\label{MFA:Types}
 Three new OpenVPN plugin types have been introduced to support MFA.
 
+\subsubsection{MFA types}
 \begin{itemize}
-     \item OPENVPN\_PLUGIN\_AUTH\_MFA\_PUSH\_VERIFY
-     \item OPENVPN\_PLUGIN\_AUTH\_MFA\_OTP\_VERIFY
-     \item OPENVPN\_PLUGIN\_AUTH\_MFA\_USER\_PASS\_VERIFY
+    \item \emph{OTP}: A one time password consist of only a password which can be conveniently
+        delivered to the user using SMS, an OTP-stick, or an application like Google Authenticator.
+        This corresponds to the plugin type\\
+        \textbf{OPENVPN\_PLUGIN\_AUTH\_MFA\_OTP\_VERIFY}.
+    \item \emph{USER-PASS}: The conventional username-password scheme requires the user to provide
+        both a username and password.
+        This corresponds to the plugin type \textbf{OPENVPN\_PLUGIN\_AUTH\_MFA\_PUSH\_VERIFY}.
+    \item \emph{PUSH}: No input is required by the user in a push message except the confirmation
+        of a push from a pre selected device.
+        This corresponds to the plugin type \textbf{OPENVPN\_PLUGIN\_AUTH\_MFA\_USER\_PASS\_VERIFY}.
 \end{itemize}
 
 In case of OTP authentication, the username field is set to the Common Name of the user and the OTP
@@ -170,12 +185,15 @@ password. The username and password fields are populated with the user supplied 
 USER-PASS.
 
 To allow for maximum extensibility of MFA, the actual implementation of each kind of of MFA
-is left to the plugin/script writer to prevent a vendor lock down. At the time of booting,
-the plugin/script mentioned in the configuration file is registered by OpenVPN's plugin
-system (only one plugin/script is allowed). During authentication, OpenVPN simply calls the
-registered plugin/script waits for a success/failure response. On receiving a success, OpenVPN
-continues on with the rest of the protocol; and on receiving a failure, OpenVPN immediately
-terminates the client connection by sending the client a \emph{SIGTERM} signal.
+is left to the plugin/script writer to prevent a vendor lock down.
+
+\subsubsection{Authentication mechanism}
+\label{MFA:Mechanism}
+At the time of booting, the plugin/script mentioned in the configuration file is registered
+by OpenVPN's plugin system (only one plugin/script is allowed). During authentication, OpenVPN
+simply calls the registered plugin/script waits for a success/failure response. On receiving a
+success, OpenVPN continues on with the rest of the protocol; and on receiving a failure, OpenVPN
+immediately terminates the client connection by sending the client a \emph{SIGTERM} signal.
 
 \section{Configuration}
 \subsection{Server}
@@ -206,27 +224,63 @@ configuration file of the client:
 \end{verbatim}
 
 \section{Backwards Compatibility}
-\textbf{TODO}
+\label{MFA:BackwardCompat}
+The server can allow connections from old client during in the initial transition phase by adding
+the following line to its configuration file:
+
+\begin{verbatim}
+    mfa-backward-compat
+\end{verbatim}
+
+The following scenarios have been addressed under the backwards compatibility flag:\\
+
+{
+    \centering
+\begin{tabular}{|c|c|c|c|}
+    \hline
+    \textbf{Compatibility} & \textbf{Server} & \textbf{Client} & \textbf{Action} \\
+    \hline
+    \multirow{3}{*}{Enabled} & \multirow{3}{*}{New Server, MFA-enabled} & New Client, MFA-Enabled & MFA-auth\\
+                             & & New Client, MFA-Disabled & auth-failure\\
+                             & & Old Client & old-auth\\
+    \hline
+    Disabled & New Server, MFA-enabled & Old Client & auth-failure\\
+    \hline
+    \multirow{2}{*}{*} & \multirow{2}{*}{New Server, MFA-disabled} & New Client, MFA-Enabled & MFA-auth\\
+                       & & New Client, MFA-disabled & old-auth\\
+    \hline
+    * & New Server, MFA-disabled & Old Client & old-auth\\
+    \hline
+    \multirow{2}{*}{*} & \multirow{2}{*}{Old Server} & New Client, MFA-Enabled & MFA-auth\\
+                       & & New Client, MFA-Disabled & MFA-auth\\
+    \hline
+\end{tabular}
+}
+
+\section{Future Work}
+\begin{itemize}
+    \item \textbf{Session Resumption}: Most web based MFA schemes allow for session resumption,
+        wherein MFA authentication is bypassed if the client has authenticated itself within
+        a specified time period.
+\end{itemize}
 
 \section{Release Notes}
 The changes introduced by Multifactor Authentication despite being a complete overhaul of key method
-2 constitute only a minor patch according to the SemVer specification. \footnote{SemVer or Semantic
+2 constitute only a minor patch according to the Semver specification. \footnote{Semver or Semantic
 Versioning is a system of naming software releases as MAJOR.MINOR.PATCH. A major change introduces
-breaking changes to the API specification. A minor change introduces non breaking features to software.
+breaking changes to software. A minor change introduces non breaking features to software.
 A patch introduces non breaking fixes to the software.}
 
 \section{Commit Log}
-Refer to Appendix \ref{MFA:commit} on page \pageref{MFA:commit} for the commit log.
-
-% \include{chapter2}
+Refer to Appendix \ref{MFA:Commit} on page \pageref{MFA:Commit} for the commit log.
 
 \appendix
 \chapter{OpenVPN Protocol}
-\label{OpenVPN:protocol}
+\label{OpenVPN:Protocol}
 \lstinputlisting{protocol.c}
 
 \chapter{Multifactor Authentication}
-\label{MFA:commit}
+\label{MFA:Commit}
 \section{Commit Log}
 \lstinputlisting{mfa-commit-log}
 
