@@ -35,12 +35,12 @@
 % set line spacing to 1.5B
 \baselineskip = 17pt
 
-\title{Multifactor Authentication and Session Support in OpenVPN}
+\title{Multifactor Authentication and Session Resumption in OpenVPN}
 \author{Report submitted in accordance with the requirements of \\
 the Indian Institute of Technology, Kanpur \\
 by \\
-Harshwardhan Sharma (),\\
-Shivanshu Agarwal (),\\
+Harshwardhan Sharma (11299),\\
+Shivanshu Agarwal (11688),\\
 Srijan R. Shetty (11727)}
 \date{November 2014}
 \maketitle
@@ -62,15 +62,13 @@ and backwards compatibility with older versions of OpenVPN.
 \listoffigures
 \addcontentsline{toc}{chapter}{List of Figures}
 
-
 \chapter{Acknowledgement}
 The authors would like to thank Professor Dheeraj Sanghi for his continued guidance
 and support, Guillaume Destuynder of Mozilla who mentored the authors despite his
 hectic schedule and lastly Mozilla for giving the authors an opportunity to work on
 a project like OpenVPN under its aegis.\\
-The authors wish to thank the University of
-Liverpool Computing Services Department for the development of this
-\LaTeX \ thesis template.
+The authors wish to thank the University of Liverpool Computing Services Department
+for the development of this \LaTeX \ thesis template.
 
 % Create glossary and add
 \printglossary
@@ -98,6 +96,7 @@ OpenVPN uses a custom protocol for communications which is attached in appendix
 
 \chapter{Multifactor Authentication}
 \section{Introduction}
+\label{MFA:Introduction}
 Multifactor Authentication, henceforth used interchangeably with MFA, hardens access control
 by challenging a user on at least two out of the following three factors of authentication.
 
@@ -140,8 +139,7 @@ list and might even have multiple authentication methods for a particular factor
         abstractions for garbage collection, memory allocation to overcome the shortcoming of C.
 \end{enumerate}
 
-\section{Implementation}
-\subsection{Current Architecture}
+\section{Current Architecture}
 The current architecture of OpenVPN supports two key methods:
 
 \begin{enumerate}
@@ -154,14 +152,15 @@ The current architecture of OpenVPN supports two key methods:
         Refer to Appendix \ref{OpenVPN:Protocol} on page \pageref{OpenVPN:Protocol} for details.
 \end{enumerate}
 
-\subsection{Augmentation}
-\subsubsection{Packet Structure}
+\section{Implementation}
+\label{MFA:Implementation}
+\subsection{Packet Structure}
 The packet structure of key method 2 - Appendix \ref{OpenVPN:Protocol}, \pageref{OpenVPN:protocol} -
 was augmented with the addition of a MFA-username and a MFA-password in the options of the packet
 following username and password fields for AUTH-USERPASS. To ensure backwards compatibility, all
 augmentations were made at the end of the packet.
 
-\subsubsection{MFA Plugin Types}
+\subsection{MFA Plugin Types}
 \label{MFA:Types}
 Three new OpenVPN plugin types have been introduced to support MFA.
 
@@ -187,13 +186,41 @@ USER-PASS.
 To allow for maximum extensibility of MFA, the actual implementation of each kind of of MFA
 is left to the plugin/script writer to prevent a vendor lock down.
 
-\subsubsection{Authentication mechanism}
+\subsection{Authentication mechanism}
 \label{MFA:Mechanism}
 At the time of booting, the plugin/script mentioned in the configuration file is registered
 by OpenVPN's plugin system (only one plugin/script is allowed). During authentication, OpenVPN
 simply calls the registered plugin/script waits for a success/failure response. On receiving a
 success, OpenVPN continues on with the rest of the protocol; and on receiving a failure, OpenVPN
 immediately terminates the client connection by sending the client a \emph{SIGTERM} signal.
+
+\subsection{Backwards Compatibility}
+The following scenarios have been addressed under the backwards compatibility flag:\\
+
+{
+    \centering
+    \begin{tabular}{|c|c|c|c|}
+        \hline
+        \textbf{Compatibility} & \textbf{Server} & \textbf{Client} & \textbf{Action} \\
+
+        \hline
+        \multirow{3}{*}{Enabled} & \multirow{3}{*}{New Server, MFA-enabled} & New Client, MFA-Enabled & MFA-auth\\
+                                 & & New Client, MFA-Disabled & auth-failure\\
+                                 & & Old Client & old-auth\\
+        \hline
+        Disabled & New Server, MFA-enabled & Old Client & auth-failure\\
+
+        \hline
+        \multirow{2}{*}{*} & \multirow{2}{*}{New Server, MFA-disabled} & New Client, MFA-Enabled & MFA-auth\\
+                           & & New Client, MFA-disabled & old-auth\\
+        \hline
+        * & New Server, MFA-disabled & Old Client & old-auth\\
+        \hline
+        \multirow{2}{*}{*} & \multirow{2}{*}{Old Server} & New Client, MFA-Enabled & MFA-auth\\
+                           & & New Client, MFA-Disabled & MFA-auth\\
+        \hline
+    \end{tabular}
+}
 
 \section{Configuration}
 \subsection{Server}
@@ -223,39 +250,14 @@ configuration file of the client:
     mfa-method [method-type]
 \end{verbatim}
 
-\section{Backwards Compatibility}
+\subsection{Backwards Compatibility}
 \label{MFA:BackwardCompat}
-The server can allow connections from old client during in the initial transition phase by adding
+The server can allow connections from old clients during the initial transition phase by adding
 the following line to its configuration file:
 
 \begin{verbatim}
     mfa-backward-compat
 \end{verbatim}
-
-The following scenarios have been addressed under the backwards compatibility flag:\\
-
-{
-    \centering
-\begin{tabular}{|c|c|c|c|}
-    \hline
-    \textbf{Compatibility} & \textbf{Server} & \textbf{Client} & \textbf{Action} \\
-    \hline
-    \multirow{3}{*}{Enabled} & \multirow{3}{*}{New Server, MFA-enabled} & New Client, MFA-Enabled & MFA-auth\\
-                             & & New Client, MFA-Disabled & auth-failure\\
-                             & & Old Client & old-auth\\
-    \hline
-    Disabled & New Server, MFA-enabled & Old Client & auth-failure\\
-    \hline
-    \multirow{2}{*}{*} & \multirow{2}{*}{New Server, MFA-disabled} & New Client, MFA-Enabled & MFA-auth\\
-                       & & New Client, MFA-disabled & old-auth\\
-    \hline
-    * & New Server, MFA-disabled & Old Client & old-auth\\
-    \hline
-    \multirow{2}{*}{*} & \multirow{2}{*}{Old Server} & New Client, MFA-Enabled & MFA-auth\\
-                       & & New Client, MFA-Disabled & MFA-auth\\
-    \hline
-\end{tabular}
-}
 
 \section{Future Work}
 \begin{itemize}
@@ -265,14 +267,71 @@ The following scenarios have been addressed under the backwards compatibility fl
 \end{itemize}
 
 \section{Release Notes}
-The changes introduced by Multifactor Authentication despite being a complete overhaul of key method
-2 constitute only a minor patch according to the Semver specification. \footnote{Semver or Semantic
-Versioning is a system of naming software releases as MAJOR.MINOR.PATCH. A major change introduces
-breaking changes to software. A minor change introduces non breaking features to software.
-A patch introduces non breaking fixes to the software.}
+\begin{enumerate}
+    \item OpenVPN should be compiled with the enable-mfa (enabled by default) flag for Multifactor
+        Authentication support.
+    \item The changes introduced by Multifactor Authentication despite being a complete overhaul of key method
+          2 constitute only a minor patch according to the Semver specification. \footnote{Semver or Semantic
+          Versioning is a system of naming software releases as MAJOR.MINOR.PATCH. A major change introduces
+          breaking changes to software. A minor change introduces non breaking features to software.
+          A patch introduces non breaking fixes to the software.}
+\end{enumerate}
 
 \section{Commit Log}
 Refer to Appendix \ref{MFA:Commit} on page \pageref{MFA:Commit} for the commit log.
+
+\chapter{Session Resumption}
+\section{Introduction}
+Multifactor Authentication trades security to convenience. While addition factors of authentication
+reduces the probability of a security breach, they increase the complexity of authentication and
+ergo lead to a bad user experience. To overcome the same, most web based multifactor authentication
+flows provide for session resumption, wherein once the user has authenticated a device using
+multifactor authentication, the additional factors are skipped when the user logs in using the same
+device.
+
+\section{Challenges}
+\textbf{TODO}
+
+\section{Implementation}
+\textbf{TODO}
+
+\section{Current Architecture}
+OpenVPN currently has no provision for session resumption, the entire scaffolding for session
+resumption was built on the Multifactor Authentication. \footnote{ Refer to \ref{MFA:Implementation}
+on page \pageref{MFA:Implementation} for details}.
+
+\section{Configuration}
+Session Resumption, builds upon Multifactor Authentication, hence configuration parameters of MFA
+need to be setup for any of the following configuration parameters to have effect.
+
+\subsection{Server}
+To enable session resumption in the server, a token expiration time must be provided in the server
+configuration file.
+
+\begin{verbatim}
+    mfa-session-expiration [session-validity (in hours)]
+\end{verbatim}
+
+\subsection{Client}
+To enable multifactor authentication in the client, a file to store session tokens must be provided
+in the client configuration file.
+
+\begin{verbatim}
+    mfa-session-file [filename]
+\end{verbatim}
+
+\noindent
+In the absence the above configuration parameter, the user is warned and session resumption is
+disabled.
+
+\section{Future Work}
+\textbf{TODO}
+
+\section{Release Notes}
+\textbf{TODO}
+
+\section{Commit Log}
+Refer to Appendix \ref{Session:Commit} on page \pageref{Session:Commit} for the commit log.
 
 \appendix
 \chapter{OpenVPN Protocol}
@@ -282,11 +341,13 @@ Refer to Appendix \ref{MFA:Commit} on page \pageref{MFA:Commit} for the commit l
 \chapter{Multifactor Authentication}
 \label{MFA:Commit}
 \section{Commit Log}
+Taken form \emph{https://github.com/harsh1618/openvpn/commits/feature/mfa}.\\
 \lstinputlisting{mfa-commit-log}
 
 \chapter{Session Resumption}
 \label{Session:Commit}
 \section{Commit Log}
+Taken form \emph{https://github.com/harsh1618/openvpn/commits/feature/session}.\\
 \lstinputlisting{session-commit-log}
 
 \bibliographystyle{plain}
