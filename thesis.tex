@@ -410,11 +410,13 @@ time, and provides for the additional factor of authentication without taking re
 \section{Implementation}
 The chosen method of session resumption makes use of session tickets/tokens and not TLS session
 resumption owing to the wide variety of attacks\cite{TLS_Insecure} demonstrated on the lesser used TLS features.
+\textbf{TODO}
 
 \section{Current Architecture}
 OpenVPN currently has no provision for session resumption, the entire scaffolding for session
 resumption was built on the Multifactor Authentication. \footnote{ Refer to \ref{MFA:Implementation}
 on page \pageref{MFA:Implementation} for details}.
+\textbf{TODO}
 
 \section{Configuration}
 Session Resumption, builds upon Multifactor Authentication, hence configuration parameters of MFA
