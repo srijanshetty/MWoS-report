@@ -56,6 +56,9 @@ such as One Time Passwords (OTP) client input and session tracking.
 The goal of this project has been to research and provide a first class user experience
 to the end user when using MFA with OpenVPN; including the support for session resumption
 and backwards compatibility with older versions of OpenVPN.
+In the long run, the authors would want their implementation of the changes discussed below
+be merged with the upstream version of OpenVPN.
+
 
 % Contents not put in table of contents by default so add it separately
 \tableofcontents
@@ -80,11 +83,15 @@ for the development of this \LaTeX \ thesis template.
 A Virtual Private network allows two devices to securely communicate with each other
 over a possibly insecure public network. This concept when extended to networks
 allows for secure communications between different private networks over an
-insecure network (most often the internet), thereby creating a virtual super-network.
+insecure network (most often the internet), through tunnelling and there by allowing
+all these private networks to be virtually connected.
 
 OpenVPN \footnote{http://openvpn.net} is a GNU General Public
 Licensed \footnote{http://www.gnu.org/copyleft/gpl.html} implementation of a
 Virtual Private Network written in C maintained by the OpenVPN project.
+The source of OpenVPN is freely available for modification; thereby encouraging willing
+developers to contribute to the development of OpenVPN. The changes made, if accepted
+by the developer community are eventually merged with the upstream version of OpenVPN.
 
 \section{Architecture}
 \subsection{Encryption}
@@ -102,8 +109,23 @@ OpenVPN provides for two authentication modes:
         On a successful TLS/SSL authentication, both side exchange source material for the key
         which is used to generate eight different keys (for the client and server). The key
         generation depends on the key method provided. Key method 1 derives it's source material
-        from OpenSSL RAND\_bytes while key method 2 derives it from TLS PRF function.
+        from OpenSSL RAND\_bytes while key method 2 derives it from TLS PRF\cite{RFC5246} function.
+        Refer to \
 \end{enumerate}
+
+\subsection{Key Methods}
+The current architecture of OpenVPN supports two key methods:
+
+\begin{enumerate}
+    \item \emph{Key Method 1}, the legacy key method only checks for the validity of certificates.
+        Refer to Appendix \ref{OpenVPN:Protocol} on page \pageref{OpenVPN:Protocol} for details.
+    \item \emph{Key Method 2}, in addition to checking for the validity of certificates, allows for
+        authentication of the user through username and password. The verification of username and
+        password is delegated to either a script or a plugin which returns a binary result
+        indicating a success or failure.
+        Refer to Appendix \ref{OpenVPN:Protocol} on page \pageref{OpenVPN:Protocol} for details.
+\end{enumerate}
+
 
 \subsection{Networking}
 TLS/SSL protocol mandates a reliable transport layer, while on the other hand the tunnelled IP
@@ -134,7 +156,7 @@ functioning.\\
 Note: In recent releases OpenVPN, support TCP as a transport layer as well.
 
 \section{Protocol}
-OpenVPN uses a custom protocol for communications which is attached in appendix
+OpenVPN uses a custom protocol\cite{OpenVPN_Security} for communications which is attached in appendix
 \ref{OpenVPN:Protocol} on page \pageref{OpenVPN:Protocol} for perusal.
 
 \mychapter{2}{Multifactor Authentication}
@@ -163,7 +185,7 @@ list and might even have multiple authentication methods for a particular factor
 \section{Challenges}
 \begin{enumerate}
     \item \textbf{Singled Threaded}: OpenVPN is single threaded process with an event loop which
-        allows it to handled concurrent connection requests. Every request fires a timer in OpenVPN
+        allows it to handle concurrent connection requests. Every request fires a timer in OpenVPN
         and if authentication does not succeed before the time quantum expires, the connection is
         reset. The time-out being tried and tested, was not up for modification.
         Considering that current MFA schemes like OTP depend upon non-reliable mechanisms like
@@ -180,19 +202,6 @@ list and might even have multiple authentication methods for a particular factor
         (Refer to \ref{MFA:BackwardCompat} on page \pageref{MFA:BackwardCompat} for implementation details.)
     \item \textbf{Defensive Coding}: OpenVPN uses a defensive style of coding by using various
         abstractions for garbage collection, memory allocation to overcome the shortcomings of C.
-\end{enumerate}
-
-\section{Current Architecture}
-The current architecture of OpenVPN supports two key methods:
-
-\begin{enumerate}
-    \item \emph{Key Method 1}, the legacy key method only checks for the validity of certificates.
-        Refer to Appendix \ref{OpenVPN:Protocol} on page \pageref{OpenVPN:Protocol} for details.
-    \item \emph{Key Method 2}, in addition to checking for the validity of certificates, allows for
-        authentication of the user through username and password. The verification of username and
-        password is delegated to either a script or a plugin which returns a binary result
-        indicating a success or failure.
-        Refer to Appendix \ref{OpenVPN:Protocol} on page \pageref{OpenVPN:Protocol} for details.
 \end{enumerate}
 
 \section{Implementation}
@@ -258,7 +267,7 @@ compatibility, all augmentations were made at the end of the packet.
             +-------------------------------------------------------+
     \end{verbatim}
     \vspace{-10mm}
-    \caption{New Plaintext packet structure}
+    \caption{New plaintext packet structure}
 \end{figure}
 
 \subsection{MFA Plugin Types}
@@ -268,14 +277,18 @@ Three new OpenVPN plugin types have been introduced to support MFA.
 \subsubsection{MFA types}
 \begin{itemize}
     \item \textbf{OPENVPN\_PLUGIN\_AUTH\_MFA\_OTP\_VERIFY} \\
-        A one time password - \emph{OTP} - consist of only a password which can be conveniently
+        A one time password - \emph{OTP}\footnote{OTPs are a suite of digits, usually 6 to 8 digits
+        long, which work only once and are invalidated after use (HOTP\cite{HOTP}) or valid for a
+    certain period of time (TOTP\cite{TOTP})} - consist of only a password which can be conveniently
         delivered to the user using SMS, an OTP-stick, or an application like Google Authenticator.
     \item \textbf{OPENVPN\_PLUGIN\_AUTH\_MFA\_USER\_PASS\_VERIFY} \\
         The conventional username-password scheme requires the user to provide
         both a username and password for multifactor authentication.
     \item \textbf{OPENVPN\_PLUGIN\_AUTH\_MFA\_PUSH\_VERIFY} \\
-        No input is required by the user in a push message except the confirmation
-        of a push from a pre selected device.
+        No input is required by the user in a push message\footnote{A push message is a push
+        notification to a device owned by the user. On accepting the push message, the device
+        sends the response to the server which in turn relays it to the OpenVPN plugin} except
+        the confirmation of a push from a pre selected device.
 \end{itemize}
 
 In case of OTP authentication, the username field is set to the Common Name of the user and the OTP
@@ -383,17 +396,20 @@ Refer to Appendix \ref{MFA:Commit} on page \pageref{MFA:Commit} for the commit l
 \mychapter{3}{Session Resumption}
 \section{Introduction}
 Multifactor Authentication trades security to convenience. While addition factors of authentication
-reduces the probability of a security breach, they increase the complexity of authentication and
-ergo lead to a bad user experience. To overcome the same, most web based multifactor authentication
-flows provide for session resumption, wherein once the user has authenticated a device using
-multifactor authentication, the additional factors are skipped when the user logs in using the same
-device.
+reduces the probability of the impersonation of user even in the face of the loss of password,
+they increase the complexity of authentication and ergo lead to a bad user experience.
+To provide a smoother user experience, most web based multifactor authentication
+flows provide for session resumption. Session resumption allows devices which on which the user has authenticated
+once using multifactor authentication to transparently store an additional secret --- the session
+token --- between the client and the server. The session token expires after a certain period of
+time, and provides for the additional factor of authentication without taking recourse to MFA.
 
 \section{Challenges}
 \textbf{TODO}
 
 \section{Implementation}
-\textbf{TODO}
+The chosen method of session resumption makes use of session tickets/tokens and not TLS session
+resumption owing to the wide variety of attacks\cite{TLS_Insecure} demonstrated on the lesser used TLS features.
 
 \section{Current Architecture}
 OpenVPN currently has no provision for session resumption, the entire scaffolding for session
@@ -435,6 +451,7 @@ Refer to Appendix \ref{Session:Commit} on page \pageref{Session:Commit} for the 
 
 \appendix
 \chapter{OpenVPN Protocol}
+\cite{OpenVPN_Security}
 \label{OpenVPN:Protocol}
 \lstinputlisting{protocol.c}
 
