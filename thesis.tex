@@ -1,6 +1,6 @@
 \documentclass[11pt,oneside]{book}
 \pagestyle{plain}
-\usepackage{graphics}
+\usepackage{graphicx}
 \usepackage{makeidx}
 \usepackage{nomencl}
 \usepackage{listings}
@@ -11,14 +11,13 @@
 \topmargin=0mm
 \headheight=0mm
 \headsep=0mm
-\leftmargin=0mm
 
 % Spacing between rows
 \renewcommand{\arraystretch}{1.3}
 
 % These must be changed for double sided output !
-\oddsidemargin=15mm
-\evensidemargin=15mm
+\usepackage{geometry}
+\geometry{margin=3cm}
 
 % Custom commands
 \newcommand{\mychapter}[2]{
@@ -159,6 +158,9 @@ The packet structure of key method 2 - Appendix \ref{OpenVPN:Protocol}, \pageref
 was augmented with the addition of a MFA-username and a MFA-password in the options of the packet
 following username and password fields for AUTH-USERPASS. To ensure backwards compatibility, all
 augmentations were made at the end of the packet.
+
+\centerline{ \includegraphics[width=150mm]{./old_packet.jpg}}
+\centerline{ \includegraphics[width=130mm]{./new_packet.jpg}}
 
 \subsection{MFA Plugin Types}
 \label{MFA:Types}
