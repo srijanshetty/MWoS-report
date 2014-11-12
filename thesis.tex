@@ -5,6 +5,7 @@
 \usepackage{nomencl}
 \usepackage{listings}
 \usepackage{multirow}
+\usepackage{float}
 
 \textheight=235mm
 \textwidth=145mm
@@ -86,7 +87,47 @@ Licensed \footnote{http://www.gnu.org/copyleft/gpl.html} implementation of a
 Virtual Private Network written in C maintained by the OpenVPN project.
 
 \section{Architecture}
-\textbf{TODO}
+\subsection{Encryption}
+OpenVPN uses either of OpenSSL or PolarSSL -- the encryption library can be selected during compile
+time -- for encryption and decryption.
+
+\subsection{Authentication Modes}
+OpenVPN provides for two authentication modes:
+
+\begin{enumerate}
+    \item {Static Key}: In this mode, a key is generated and shared between the users before
+        the establishment of a tunnel. The static key comprises of four independent keys: HMAC send,
+        HMAC receive, encrypt key and decrypt key.
+    \item {TLS}: In this mode, a bidirectional session using certificates is established between.
+        On a successful TLS/SSL authentication, both side exchange source material for the key
+        which is used to generate eight different keys (for the client and server).
+\end{enumerate}
+
+\subsection{Networking}
+TLS/SSL protocol mandates a reliable transport layer, while on the other hand the tunnelled IP
+packets require a unreliable layer beneath them. To overcome this reliability-layer collision,
+OpenVPN multiplexes both these connections.
+The SSL/TLS session used for authentication and key exchange is still sent over UDP but with a
+reliability layer provided by OpenVPN. Multiplexed with SSL/TLS session are the IP packets, which
+after being encrypted and signed by and HMAC are directly passed over the UDP layer. This ensures
+that each of these channels gets what it expects from the layer beneath it. Additionally, both these
+channels are completely independent of each other and hence do not interfere with each other's
+functioning.\\
+
+\begin{figure}[h]
+    \begin{verbatim}
+        SSL/TLS -> Reliability Layer -> \
+                   --tls-auth HMAC       \
+                                          \
+                                           > Multiplexer ----> UDP
+                                          /                    Transport
+        IP        Encrypt and HMAC       /
+        Tunnel -> using OpenSSL EVP --> /
+        Packets   interface.
+    \end{verbatim}
+    \vspace{-6mm}
+    \caption{OpenVPN Networking}
+\end{figure}
 
 \section{Protocol}
 OpenVPN uses a custom protocol for communications which is attached in appendix
@@ -134,7 +175,7 @@ list and might even have multiple authentication methods for a particular factor
         MFA, all the changes were introduced in a non breaking fashion.
         (Refer to \ref{MFA:BackwardCompat} on page \pageref{MFA:BackwardCompat} for implementation details.)
     \item \textbf{Defensive Coding}: OpenVPN uses a defensive style of coding by using various
-        abstractions for garbage collection, memory allocation to overcome the shortcoming of C.
+        abstractions for garbage collection, memory allocation to overcome the shortcomings of C.
 \end{enumerate}
 
 \section{Current Architecture}
@@ -151,15 +192,70 @@ The current architecture of OpenVPN supports two key methods:
 \end{enumerate}
 
 \section{Implementation}
+\begin{figure}[t]
+    \label{MFA:Old Packet}
+    \begin{verbatim}
+            +-------------------------------------------------------+
+            |    TLS plaintext packet (if key_method == 2):         |
+            +-------------------------------------------------------+
+            |  Literal 0 (4 bytes).                                 |
+            |  key_method type (1 byte).                            |
+            |  key_source structure (pre_master only                |
+            |      defined for client -> server).                   |
+            |  options_string_length, including null (2 bytes).     |
+            |  Options string (n bytes, null terminated,            |
+            |          client/server options string must match).    |
+            |                                                       |
+            |  [The username/password data below is optional]       |
+            |  username_string_length, including null (2 bytes).    |
+            |  Username string (n bytes, null terminated).          |
+            |  password_string_length, including null (2 bytes)     |
+            |  Password string (n bytes, null terminated).          |
+            +-------------------------------------------------------+
+    \end{verbatim}
+    \vspace{-10mm}
+    \caption{Old Plaintext packet structure}
+\end{figure}
+
 \label{MFA:Implementation}
 \subsection{Packet Structure}
-The packet structure of key method 2 - Appendix \ref{OpenVPN:Protocol}, \pageref{OpenVPN:protocol} -
-was augmented with the addition of a MFA-username and a MFA-password in the options of the packet
-following username and password fields for AUTH-USERPASS. To ensure backwards compatibility, all
-augmentations were made at the end of the packet.
+The packet structure of key method 2 - Refer to \ref{MFA:Old Packet} on page \pageref{MFA:Old Packet} -
+was augmented with the addition of a MFA-username and a MFA-password in the options of TLS plaintext
+packet (key method 2) - Refer to \ref{MFA:New Packet} on page \pageref{MFA:New Packet} -
+following username and password fields for AUTH-USERPASS. To ensure backwards
+compatibility, all augmentations were made at the end of the packet.
 
-\centerline{ \includegraphics[width=150mm]{./old_packet.jpg}}
-\centerline{ \includegraphics[width=130mm]{./new_packet.jpg}}
+\begin{figure}[t]
+    \label{MFA:New Packet}
+    \centering
+    \begin{verbatim}
+            +-------------------------------------------------------+
+            |    TLS plaintext packet (if key_method == 2):         |
+            +-------------------------------------------------------+
+            |  Literal 0 (4 bytes).                                 |
+            |  key_method type (1 byte).                            |
+            |  key_source structure (pre_master only                |
+            |      defined for client -> server).                   |
+            |  options_string_length, including null (2 bytes).     |
+            |  Options string (n bytes, null terminated,            |
+            |          client/server options string must match).    |
+            |                                                       |
+            |  [The username/password data below is optional]       |
+            |  username_string_length, including null (2 bytes).    |
+            |  Username string (n bytes, null terminated).          |
+            |  password_string_length, including null (2 bytes)     |
+            |  Password string (n bytes, null terminated).          |
+            |                                                       |
+            |  [The MFA data below is optional]                     |
+            |  mfa_username_string_length, including null (2 bytes).|
+            |  MFA Username string (n bytes, null terminated).      |
+            |  mfa_password_string_length, including null (2 bytes) |
+            |  MFA Password string (n bytes, null terminated).      |
+            +-------------------------------------------------------+
+    \end{verbatim}
+    \vspace{-10mm}
+    \caption{New Plaintext packet structure}
+\end{figure}
 
 \subsection{MFA Plugin Types}
 \label{MFA:Types}
