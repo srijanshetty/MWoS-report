@@ -17,7 +17,7 @@
 
 % These must be changed for double sided output !
 \usepackage{geometry}
-\geometry{margin=3cm}
+\geometry{margin=2.5cm}
 
 % Custom commands
 \newcommand{\mychapter}[2]{
@@ -33,19 +33,22 @@
 
 % set line spacing to 1.5B
 \baselineskip = 17pt
-
-\title{Multifactor Authentication and Session Resumption in OpenVPN}
-\author{Report submitted in accordance with the requirements of \\
-the Indian Institute of Technology, Kanpur \\
-by \\
-Harshwardhan Sharma (11299),\\
-Shivanshu Agarwal (11688),\\
-Srijan R. Shetty (11727)}
+\title{
+    \centerline{\includegraphics[height=40mm]{./MWOS.png}}
+Multifactor Authentication and Session Resumption in OpenVPN}
+\author{
+    Report submitted in accordance with the requirements of \\
+    the Indian Institute of Technology, Kanpur \\
+    by \\
+    Harshwardhan Sharma (11299),\\
+    Shivanshu Agarwal (11688),\\
+    Srijan R. Shetty (11727)
+}
 \date{November 2014}
 \maketitle
 \frontmatter
 
-\chapter{Abstract}
+\mychapter{0}{Abstract}
 Mozilla uses OpenVPN with MFA via deferred C plugins and pythons scripts.
 However, there are several caveats that require non-plugin based modifications,
 such as One Time Passwords (OTP) client input and session tracking.
@@ -57,11 +60,7 @@ and backwards compatibility with older versions of OpenVPN.
 \tableofcontents
 \addcontentsline{toc}{chapter}{Contents}
 
-% List of figures  not put in table of contents by default so add it separately
-\listoffigures
-\addcontentsline{toc}{chapter}{List of Figures}
-
-\chapter{Acknowledgement}
+\mychapter{0}{Acknowledgement}
 The authors would like to thank Professor Dheeraj Sanghi for his continued guidance
 and support, Guillaume Destuynder of Mozilla who mentored the authors despite his
 hectic schedule and lastly Mozilla for giving the authors an opportunity to work on
@@ -75,7 +74,7 @@ for the development of this \LaTeX \ thesis template.
 
 \mainmatter
 
-\chapter{OpenVPN}
+\mychapter{1}{OpenVPN}
 \section{Introduction}
 A Virtual Private network allows two devices to securely communicate with each other
 over a possibly insecure public network. This concept when extended to networks
@@ -93,7 +92,7 @@ Virtual Private Network written in C maintained by the OpenVPN project.
 OpenVPN uses a custom protocol for communications which is attached in appendix
 \ref{OpenVPN:Protocol} on page \pageref{OpenVPN:Protocol} for perusal.
 
-\chapter{Multifactor Authentication}
+\mychapter{2}{Multifactor Authentication}
 \section{Introduction}
 \label{MFA:Introduction}
 Multifactor Authentication, henceforth used interchangeably with MFA, hardens access control
@@ -168,16 +167,15 @@ Three new OpenVPN plugin types have been introduced to support MFA.
 
 \subsubsection{MFA types}
 \begin{itemize}
-    \item \emph{OTP}: A one time password consist of only a password which can be conveniently
+    \item \textbf{OPENVPN\_PLUGIN\_AUTH\_MFA\_OTP\_VERIFY} \\
+        A one time password - \emph{OTP} - consist of only a password which can be conveniently
         delivered to the user using SMS, an OTP-stick, or an application like Google Authenticator.
-        This corresponds to the plugin type\\
-        \textbf{OPENVPN\_PLUGIN\_AUTH\_MFA\_OTP\_VERIFY}.
-    \item \emph{USER-PASS}: The conventional username-password scheme requires the user to provide
-        both a username and password.
-        This corresponds to the plugin type \textbf{OPENVPN\_PLUGIN\_AUTH\_MFA\_PUSH\_VERIFY}.
-    \item \emph{PUSH}: No input is required by the user in a push message except the confirmation
+    \item \textbf{OPENVPN\_PLUGIN\_AUTH\_MFA\_USER\_PASS\_VERIFY} \\
+        The conventional username-password scheme requires the user to provide
+        both a username and password for multifactor authentication.
+    \item \textbf{OPENVPN\_PLUGIN\_AUTH\_MFA\_PUSH\_VERIFY} \\
+        No input is required by the user in a push message except the confirmation
         of a push from a pre selected device.
-        This corresponds to the plugin type \textbf{OPENVPN\_PLUGIN\_AUTH\_MFA\_USER\_PASS\_VERIFY}.
 \end{itemize}
 
 In case of OTP authentication, the username field is set to the Common Name of the user and the OTP
@@ -282,7 +280,7 @@ the following line to its configuration file:
 \section{Commit Log}
 Refer to Appendix \ref{MFA:Commit} on page \pageref{MFA:Commit} for the commit log.
 
-\chapter{Session Resumption}
+\mychapter{3}{Session Resumption}
 \section{Introduction}
 Multifactor Authentication trades security to convenience. While addition factors of authentication
 reduces the probability of a security breach, they increase the complexity of authentication and
