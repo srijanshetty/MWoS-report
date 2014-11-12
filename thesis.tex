@@ -88,8 +88,8 @@ Virtual Private Network written in C maintained by the OpenVPN project.
 
 \section{Architecture}
 \subsection{Encryption}
-OpenVPN uses either of OpenSSL or PolarSSL -- the encryption library can be selected during compile
-time -- for encryption and decryption.
+OpenVPN can use either of OpenSSL or PolarSSL for encryption and decryption. The choice of the SSL
+library can be provided during compilation of OpenVPN binary.
 
 \subsection{Authentication Modes}
 OpenVPN provides for two authentication modes:
@@ -100,7 +100,9 @@ OpenVPN provides for two authentication modes:
         HMAC receive, encrypt key and decrypt key.
     \item {TLS}: In this mode, a bidirectional session using certificates is established between.
         On a successful TLS/SSL authentication, both side exchange source material for the key
-        which is used to generate eight different keys (for the client and server).
+        which is used to generate eight different keys (for the client and server). The key
+        generation depends on the key method provided. Key method 1 derives it's source material
+        from OpenSSL RAND\_bytes while key method 2 derives it from TLS PRF function.
 \end{enumerate}
 
 \subsection{Networking}
