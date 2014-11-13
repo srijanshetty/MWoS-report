@@ -50,6 +50,7 @@ Multifactor Authentication and Session Resumption in OpenVPN}
 \frontmatter
 
 \mychapter{0}{Abstract}
+OpenVPN is an open source implementation of a Virtual Private Network.
 Mozilla uses OpenVPN with MFA via deferred C plugins and pythons scripts.
 However, there are several caveats that require non-plugin based modifications,
 such as One Time Passwords (OTP) client input and session tracking.
@@ -57,8 +58,10 @@ The goal of this project has been to research and provide a first class user exp
 to the end user when using MFA with OpenVPN; including the support for session resumption
 and backwards compatibility with older versions of OpenVPN.
 In the long run, the authors would want their implementation of the changes discussed below
-be merged with the upstream version of OpenVPN.
-
+be merged with the upstream version of OpenVPN.\\
+The entire project is GNU GPL Licensed and the source code is available on GitHub\cite{GitHub}
+The authors also maintain a Wiki page which tracks progress and has more information on the
+project at https://wiki.mozilla.org/Security/Mentorships/MWoS/2014/OpenVPN\_MFA.
 
 % Contents not put in table of contents by default so add it separately
 \tableofcontents
@@ -201,7 +204,7 @@ list and might even have multiple authentication methods for a particular factor
         MFA, all the changes were introduced in a non breaking fashion.
         (Refer to \ref{MFA:BackwardCompat} on page \pageref{MFA:BackwardCompat} for implementation details.)
     \item \textbf{Defensive Coding}: OpenVPN uses a defensive style of coding by using various
-        abstractions for garbage collection, memory allocation to overcome the shortcomings of C.
+        abstractions for garbage collection, memory allocation to overcome the shortcomings of C and to protect against malicious users and untrusted input.
 \end{enumerate}
 
 \section{Implementation}
@@ -372,12 +375,12 @@ the following line to its configuration file:
     mfa-backward-compat
 \end{verbatim}
 
-\section{Future Work}
-\begin{itemize}
-    \item \textbf{Session Resumption}: Most web based MFA schemes allow for session resumption,
-        wherein MFA authentication is bypassed if the client has authenticated itself within
-        a specified time period.
-\end{itemize}
+%\section{Future Work}
+%\begin{itemize}
+%    \item \textbf{Session Resumption}: Most web based MFA schemes allow for session resumption,
+%        wherein MFA authentication is bypassed if the client has authenticated itself within
+%        a specified time period.
+%\end{itemize}
 
 \section{Release Notes}
 \begin{enumerate}
@@ -395,7 +398,7 @@ Refer to Appendix \ref{MFA:Commit} on page \pageref{MFA:Commit} for the commit l
 
 \mychapter{3}{Session Resumption}
 \section{Introduction}
-Multifactor Authentication trades security to convenience. While addition factors of authentication
+Multifactor Authentication trades security for convenience. While addition factors of authentication
 reduces the probability of the impersonation of user even in the face of the loss of password,
 they increase the complexity of authentication and ergo lead to a bad user experience.
 To provide a smoother user experience, most web based multifactor authentication
@@ -405,20 +408,77 @@ token --- between the client and the server. The session token expires after a c
 time, and provides for the additional factor of authentication without taking recourse to MFA.
 
 \section{Challenges}
-\textbf{TODO}
+\begin{enumerate}
+    \item \textbf{Security}: The session resumption mechanism should be secure and resilient against cryptographic and implementation-based attacks. The session token used should be tied to the client's identity and it should not be possible for any entity other than the server to generate a valid token for any client within a reasonable amount of time.
+    \item \textbf{User Experience}: The entire process should be transparent to the user. Enabling support for session resumption should require minimal changes to the client and server configuration files.
+    \item \textbf{Protocol}: The entire procedure of session resumption should fit into the existing OpenVPN protocol so as to maintain backwards compatibility.
+\end{enumerate}
 
 \section{Implementation}
-The chosen method of session resumption makes use of session tickets/tokens and not TLS session
-resumption owing to the wide variety of attacks\cite{TLS_Insecure} demonstrated on the lesser used TLS features.
-\textbf{TODO}
+\subsection{Possible Approaches}
+There were two possible approaches to implement session resumption: \emph{TLS session resumption without
+server side state\cite{RFC5077}} or session cookies. We chose the latter for the following reasons:
 
-\section{Current Architecture}
-OpenVPN currently has no provision for session resumption, the entire scaffolding for session
-resumption was built on the Multifactor Authentication. \footnote{ Refer to \ref{MFA:Implementation}
-on page \pageref{MFA:Implementation} for details}.
-\textbf{TODO}
+\begin{enumerate}
+    \item It is widely recognized that TLS Session Resumption is not secure and many theoretical
+        attack vectors\cite{TLS_Insecure} have been proposed which leverage not the implementation
+        of the feature but the fundamental ideas backing TLS Session Resmption.
+    \item The community norm seems to favour using only widely deployed features of TLS and not
+        proposed features; and session resumption happens to be not used widely.
+    \item Session Resumption through cookies is widely used on many websites to maintain login
+        sessions. In the case of OpenVPN, cookies are encrypted before being transferred which
+        provides extra security and prevents session hijacking.
+\end{enumerate}
+
+\subsection{Session Tokens}
+The chosen method of session resumption makes use of session tickets/tokens which are provided by
+the server to the client on successful authentication and can be used in future sessions to bypass
+the authentication. The session token is analogous to cookies used by websites to maintain state.
+
+\begin{itemize}
+    \item On startup, the server generates a key (48 bytes).
+    \item When the client successfully authenticates with MFA credentials, the server generates a
+        token which is the  HMAC \cite{RFC2104} of the client's Common Name and the current UNIX
+        timestamp using the key. The HMAC is calculated by XORing HMAC-SHA1 and HMAC-MD5. This
+        procedure is also used by OpenVPN during tunnel key negotiation.
+    \item The token and timestamp are sent back to the client in the server's key\_method\_2 packet
+        (See Fig. \ref{MFA:New Packet}). The client stores these in a local file.
+    \item During next authentication the timestamp and the token are sent instead of the MFA
+        credentials. The server verifies that the timestamp is within {\tt mfa-session-expiration}
+        (Section \ref{sess_config}) hours and verifies its authenticity by generating the HMAC and
+        comparing it against the received token. If the verification succeeds, authentication is
+        considered successful. If not, the client is prompted for the credentials.
+\end{itemize}
+
+The advantage of this approach is that the server does not need to store any information related to
+the session. Hence no additional file or database is required to add session support.
+
+\begin{figure}[t]
+    \label{session_resumption}
+    \centering
+    \begin{verbatim}
+                 +--------------+  Credentials +--------------+
+                 |              <--------------+              |
+    SESSION 1    |    Server    |              |    Client    |
+                 |              +-------------->              |
+                 +--------------+    Session   +--------------+
+                                     token
+
+
+
+                 +--------------+    Session   +--------------+
+    SESSION 2    |              |    token     |              |
+                 |    Server    <--------------+    Client    |
+                 |              |              |              |
+                 +--------------+              +--------------+
+
+    \end{verbatim}
+    \vspace{-10mm}
+    \caption{Session resumption}
+\end{figure}
 
 \section{Configuration}
+\label{sess_config}
 Session Resumption, builds upon Multifactor Authentication, hence configuration parameters of MFA
 need to be setup for any of the following configuration parameters to have effect.
 
@@ -441,12 +501,6 @@ in the client configuration file.
 \noindent
 In the absence the above configuration parameter, the user is warned and session resumption is
 disabled.
-
-\section{Future Work}
-\textbf{TODO}
-
-\section{Release Notes}
-\textbf{TODO}
 
 \section{Commit Log}
 Refer to Appendix \ref{Session:Commit} on page \pageref{Session:Commit} for the commit log.
